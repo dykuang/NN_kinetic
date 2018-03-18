@@ -24,16 +24,18 @@ from scipy.optimize import fsolve
 R = 8.3145
 num_E = 20
 num_lnA = 20
-BETA = [10, 20, 30 ,40]
+num_Temp = 301
+BETA = [5, 10, 15, 20, 25, 30]
 
 E = np.linspace(50, 300, num_E)
-LNA = np.linspace(1, 30, num_E) # make it random? rule out unreal cases
+LNA = np.linspace(5, 30, num_E) # make it random? rule out unreal cases
 
 #EE, lnAA = np.meshgrid(E, LNA)
 
-alpha = np.linspace(0.01, 0.9999, 101)
+alpha = np.linspace(0.01, 0.99, 101)
 
-Temp = np.linspace(500, 1500, 101) # temperature in Kelvin
+
+Temp = np.linspace(300, 1500, num_Temp) # temperature in Kelvin
 
 model ={'A2': lambda x: (-np.log(1-x))**0.5,
         'A3': lambda x: (-np.log(1-x))**(1.0/3),  
@@ -72,31 +74,60 @@ def integrand(x, y, z):
 # Generating data
 #------------------------------------------------------------------------------
 RIGHT = []
-alpha_T = np.zeros([20, 20, 101])
-alpha_T_app = np.zeros([20, 20, 101])
+alpha_T = np.zeros([num_E,num_lnA,num_Temp])
+alpha_T_app = np.zeros([num_E,num_lnA,num_Temp])
 model_ind = 0
 
+y_train = []
 for i, EE in enumerate(E):
      for j, lnA in enumerate(LNA):
            inte = lambda x: integrand(EE, lnA, x)
            for k, T in enumerate(Temp):
-                alpha_T[i,j,k] = integrate.quad(inte, 0, T)[0]
+                alpha_T[i,j,k] = integrate.quadrature(inte, 0, T)[0]
 #                alpha_T_app[i,j,k] = R*T**2/EE*(1e-3)*(1-2*R*T/EE*(1e-3))*np.exp(lnA-1000*EE/R/T)
-     
+           y_train.append(np.array([EE, lnA]))
 
+y_train = np.stack(y_train)
 
+from scipy.interpolate import interp1d
+data=[]
+for beta in BETA:
+    for key, g in model_inv.items():
+        data.append(np.clip(g(alpha_T/beta), 0, 1))
 
+data = np.stack(data)
 
+data = np.reshape(data, [66*20*20, 301])
+
+train = []
+for dat in data:
+    train.append(interp1d(dat, Temp, fill_value = 'extrapolate')(alpha))
+    
+train = np.stack(train)
+
+k = np.sort(np.tile(range(11), num_E*num_lnA))
+k = np.reshape(k,[len(k),1])
+y_train = np.tile(y_train, (11,1))
+y_train = np.hstack([k, y_train])
+y_train = np.tile(y_train, (6,1))
+
+rgmax = np.max(train, axis = 1)
+rgmin = np.min(train, axis = 1)
+
+mask = (rgmax<1500) & (train[:,0]>300)
+train_processed = train[mask,:]
+y_train = y_train[mask,:]
 # =============================================================================
-# Temp =   np.zeros([13, 20, 20, 101])   
+# Temp =   np.zeros([11, 20, 20, 101])   
 # ind = 0      
 # for key, g in model.items():
 #      g_alpha = g(alpha)
 #      for i, EE in enumerate(E):
 #           for j, lnA in enumerate(LNA):
 #                for k, val in enumerate(g_alpha):
-#                      Temp[ind,i,j,k]=fsolve(lambda T: R*T**2/EE*(1e-3)*(1-2*R*T/EE*(1e-3))*np.exp(lnA-1000*EE/R/T) 
-#                                          - g_alpha*10, 0.5)[0]
+#                      Temp[ind,i,j,k]=fsolve(lambda T: R*T**2/EE*(1e-3)*np.exp(lnA-1000*EE/R/T) 
+#                                          - val*10, 900)[0]
+#      ind = ind + 1
 # =============================================================================
           
 

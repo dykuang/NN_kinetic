@@ -40,7 +40,7 @@ Temp = np.linspace(300, 1500, num_Temp) # temperature in Kelvin
 model ={'A2': lambda x: (-np.log(1-x))**0.5,
         'A3': lambda x: (-np.log(1-x))**(1.0/3),  
         'A4': lambda x: (-np.log(1-x))**0.25,  
-        'R1': lambda x: x,  
+        'R1 ': lambda x: x,  
         'R2': lambda x: 1-(1-x)**0.5, 
         'R3': lambda x: 1-(1-x)**(1.0/3), 
         'D1': lambda x: x**2,
@@ -117,6 +117,8 @@ rgmin = np.min(train, axis = 1)
 mask = (rgmax<1500) & (train[:,0]>300)
 train_processed = train[mask,:]
 y_train = y_train[mask,:]
+
+
 # =============================================================================
 # Temp =   np.zeros([11, 20, 20, 101])   
 # ind = 0      

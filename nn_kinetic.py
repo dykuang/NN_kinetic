@@ -40,6 +40,8 @@ yTrain_label = yTrain[:,0]
 yTrain_para = yTrain[:,1:]
 
 yTrain_label = utils.to_categorical(yTrain_label, cls)
+
+xTrain = np.hstack([xTrain, np.diff(xTrain, axis = 1)])
 #------------------------------------------------------------------------------
 # preprocess
 #------------------------------------------------------------------------------

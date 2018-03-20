@@ -107,7 +107,7 @@ def integrand(x, y, z):
 #------------------------------------------------------------------------------
 RIGHT = []
 alpha_T = np.zeros([num_E,num_lnA,num_Temp])
-alpha_T_app = np.zeros([num_E,num_lnA,num_Temp])
+#alpha_T_app = np.zeros([num_E,num_lnA,num_Temp])
 model_ind = 0
 
 y_train = []
@@ -115,7 +115,7 @@ for i, EE in enumerate(E):
      for j, lnA in enumerate(LNA):
            inte = lambda x: integrand(EE, lnA, x)
            for k, T in enumerate(Temp):
-                alpha_T[i,j,k] = integrate.quadrature(inte, 0, T)[0]
+                alpha_T[i,j,k] = integrate.quadrature(inte, 300, T)[0]
 #                alpha_T_app[i,j,k] = R*T**2/EE*(1e-3)*(1-2*R*T/EE*(1e-3))*np.exp(lnA-1000*EE/R/T)
            y_train.append(np.array([EE, lnA]))
 

@@ -33,8 +33,8 @@ batchsize = 128
 epochs = 50
 preprocess = True
 
-xTrain = np.load(r'dataset/xtrain.npy')
-yTrain = np.load(r'dataset/ytrain.npy')
+xTrain = np.load(r'dataset/xtrain1.npy')
+yTrain = np.load(r'dataset/ytrain1.npy')
 
 yTrain_label = yTrain[:,0]
 yTrain_para = yTrain[:,1:]
@@ -87,18 +87,18 @@ feature = Input(shape = (input_dim, 1))
 # =============================================================================
 #x = Dense(128, activation = 'relu', name = 'dense_1')(x)
 
-#x = Conv1D(filters= 32, kernel_size = 3, strides=3, padding='same',  
-#           activation='relu',name = 'conv1D_1')(feature)
-#x = Conv1D(filters= 64, kernel_size = 3, strides=3, padding='same',  
-#           activation='relu',name = 'conv1D_2')(x)
-#x = MaxPooling1D(pool_size=2, strides=2, name = 'MP_1')(x)
+x = Conv1D(filters= 32, kernel_size = 3, strides=3, padding='same',  
+           activation='relu',name = 'conv1D_1')(feature)
+x = Conv1D(filters= 64, kernel_size = 3, strides=3, padding='same',  
+           activation='relu',name = 'conv1D_2')(x)
+x = MaxPooling1D(pool_size=2, strides=2, name = 'MP_1')(x)
 
-x = Flatten()(feature)
+x = Flatten()(x)
 #x = add([feature, x])
 #x = BatchNormalization()(x)
 #x = GlobalAveragePooling1D()(x)
 
-x = Dense(50, activation = 'relu', name = 'dense_0')(x)
+x = Dense(64, activation = 'relu', name = 'dense_0')(x)
 #x = BatchNormalization()(x)
 #x = Dense(128, activation = 'relu', name = 'dense')(feature)
 x1 = Dense(32, activation = 'relu', name = 'dense_1')(x)

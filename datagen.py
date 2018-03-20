@@ -24,7 +24,7 @@ from scipy.optimize import fsolve
 R = 8.3145
 num_E = 20
 num_lnA = 20
-num_Temp = 301
+num_Temp = 150
 BETA = [5, 10, 15, 20, 25, 30]
 
 E = np.linspace(50, 300, num_E)
@@ -109,6 +109,7 @@ RIGHT = []
 alpha_T = np.zeros([num_E,num_lnA,num_Temp])
 #alpha_T_app = np.zeros([num_E,num_lnA,num_Temp])
 model_ind = 0
+
 
 y_train = []
 for i, EE in enumerate(E):

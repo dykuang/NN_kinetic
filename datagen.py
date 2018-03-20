@@ -66,6 +66,38 @@ model_inv = {
         'F3': lambda x: 1-1/(2*x+1)**0.5
           }
 
+
+F_n = lambda x, n: (1/(1-x)**(n-1)-1)/(n-1)
+F_n_inv = lambda x, n: 1-1/((n-1)*x+1)**(1/(n-1))
+
+model_F = {
+        'F1': lambda x: -np.log(1-x),
+        'F2': lambda x: F_n(x, 2),
+        'F3': lambda x: F_n(x, 3),
+        'F4': lambda x: F_n(x, 4),
+        'F5': lambda x: F_n(x, 5),
+        'F6': lambda x: F_n(x, 6),
+        'F7': lambda x: F_n(x, 7),
+        'F8': lambda x: F_n(x, 8),
+        'F9': lambda x: F_n(x, 9),
+        'F10': lambda x: F_n(x, 10),
+        'F11': lambda x: F_n(x, 11),
+        }
+
+model_F_inv = {
+        'F1': lambda x: 1-np.exp(-x),
+        'F2': lambda x: F_n_inv(x, 2),
+        'F3': lambda x: F_n_inv(x, 3),
+        'F4': lambda x: F_n_inv(x, 4),
+        'F5': lambda x: F_n_inv(x, 5),
+        'F6': lambda x: F_n_inv(x, 6),
+        'F7': lambda x: F_n_inv(x, 7),
+        'F8': lambda x: F_n_inv(x, 8),
+        'F9': lambda x: F_n_inv(x, 9),
+        'F10': lambda x: F_n_inv(x, 10),
+        'F11': lambda x: F_n_inv(x, 11),
+        }
+
 def integrand(x, y, z):
      return np.exp(y-1000*x/R/z)
 

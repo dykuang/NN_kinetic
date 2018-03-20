@@ -5,6 +5,13 @@ Created on Sat Mar 17 18:30:30 2018
 @author: dykuang
 
 Building a network to predict kinetic triplets.
+
+It turns out an easier structure does much better than the more complicated structure.
+
+(should start with easy ones)
+
+best accuracy: 82%
+
 """
 from keras.models import Model
 from keras import backend as K
@@ -22,8 +29,8 @@ from keras.layers import Conv1D, Input, GaussianNoise, Flatten, Dropout, Dense,\
 # Load data
 #------------------------------------------------------------------------------
 cls = 11
-batchsize = 256
-epochs = 250
+batchsize = 128
+epochs = 50
 preprocess = True
 
 xTrain = np.load(r'dataset/xtrain.npy')
@@ -37,7 +44,7 @@ yTrain_label = utils.to_categorical(yTrain_label, cls)
 # preprocess
 #------------------------------------------------------------------------------
 if preprocess:
-    Scaler = MinMaxScaler().fit(xTrain)
+    Scaler = StandardScaler().fit(xTrain)
     x_train_std = Scaler.transform(xTrain)
 else:
     x_train_std = xTrain
@@ -51,29 +58,31 @@ else:
 input_dim = x_train_std.shape[1]
 feature = Input(shape = (input_dim, 1))
 #
-x = GaussianNoise(0.01)(feature)
-x = Conv1D(filters= 16, kernel_size = 4, strides=4, padding='valid',  
-       activation='relu',name = 'conv1D_1')(x)
-x = MaxPooling1D(pool_size=2, strides=2, name = 'MP_1')(x)
-x = Flatten(name = 'flat_1')(x)
-
-x_x = GaussianNoise(0.01)(feature)
-x_x = Conv1D(filters= 24, kernel_size = 6, strides= 6, padding='valid',
-       activation='relu',name = 'conv1D_2')(x_x)
-x_x = MaxPooling1D(pool_size=2, strides=2, name = 'MP_2')(x_x)
-x_x = Flatten(name = 'flat_2')(x_x)
-
-x_x_x = GaussianNoise(0.01)(feature)
-x_x_x = Conv1D(filters= 32, kernel_size = 8, strides= 8, padding='valid', 
-       activation='relu', name = 'conv1D_3')(x_x_x)
-x_x_x = MaxPooling1D(pool_size=2, strides=2, name = 'MP_3')(x_x_x)
-x_x_x = Flatten(name = 'flat_3')(x_x_x)
-
-
-feature_f = GaussianNoise(0.01)(feature)
-feature_f = Flatten(name = 'flat_4')(feature_f)
-##
-x = concatenate([x, x_x, x_x_x, feature_f])
+# =============================================================================
+# x = GaussianNoise(0.01)(feature)
+# x = Conv1D(filters= 8, kernel_size = 4, strides=4, padding='valid',  
+#        activation='relu',name = 'conv1D_1')(x)
+# x = MaxPooling1D(pool_size=2, strides=2, name = 'MP_1')(x)
+# x = Flatten(name = 'flat_1')(x)
+# 
+# x_x = GaussianNoise(0.01)(feature)
+# x_x = Conv1D(filters= 12, kernel_size = 6, strides= 6, padding='valid',
+#        activation='relu',name = 'conv1D_2')(x_x)
+# x_x = MaxPooling1D(pool_size=2, strides=2, name = 'MP_2')(x_x)
+# x_x = Flatten(name = 'flat_2')(x_x)
+# 
+# x_x_x = GaussianNoise(0.01)(feature)
+# x_x_x = Conv1D(filters= 16, kernel_size = 8, strides= 8, padding='valid', 
+#        activation='relu', name = 'conv1D_3')(x_x_x)
+# x_x_x = MaxPooling1D(pool_size=2, strides=2, name = 'MP_3')(x_x_x)
+# x_x_x = Flatten(name = 'flat_3')(x_x_x)
+# 
+# 
+# feature_f = GaussianNoise(0.01)(feature)
+# feature_f = Flatten(name = 'flat_4')(feature_f)
+# ##
+# x = concatenate([x, x_x])
+# =============================================================================
 #x = Dense(128, activation = 'relu', name = 'dense_1')(x)
 
 #x = Conv1D(filters= 32, kernel_size = 3, strides=3, padding='same',  
@@ -82,18 +91,20 @@ x = concatenate([x, x_x, x_x_x, feature_f])
 #           activation='relu',name = 'conv1D_2')(x)
 #x = MaxPooling1D(pool_size=2, strides=2, name = 'MP_1')(x)
 
-#x = Flatten()(x)
+x = Flatten()(feature)
 #x = add([feature, x])
 #x = BatchNormalization()(x)
 #x = GlobalAveragePooling1D()(x)
 
-x = Dense(256, activation = 'relu', name = 'dense_0')(x)
-#x = Dense(128, activation = 'relu', name = 'dense')(x)
-x1 = Dense(64, activation = 'relu', name = 'dense_1')(x)
-x2 = Dense(32, activation = 'relu', name = 'dense_2')(x)
+x = Dense(50, activation = 'relu', name = 'dense_0')(x)
+#x = BatchNormalization()(x)
+#x = Dense(128, activation = 'relu', name = 'dense')(feature)
+x1 = Dense(32, activation = 'relu', name = 'dense_1')(x)
+#x2 = Dense(16, activation = 'relu', name = 'dense_2')(x)
+
 
 pred = Dense(cls, activation = 'softmax', name = 'which_model')(x1)
-par = Dense(2, activation = 'relu', name = 'ElnA')(x2)
+par = Dense(2, activation = 'relu', name = 'ElnA')(x1)
 
 model = Model(feature, [pred, par])
 #model = Model(feature, pred)

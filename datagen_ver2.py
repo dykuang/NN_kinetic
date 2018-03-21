@@ -66,7 +66,7 @@ def random_points_within(poly, num_points):
 
     return points
 
-num_pts = 400
+num_pts = 600
 E = np.zeros(num_pts)
 LNA = np.zeros(num_pts)
 
@@ -83,8 +83,8 @@ y_train = []
 for i in range(num_pts):
     inte = lambda x: integrand(E[i], LNA[i], x)
     for k, T in enumerate(Temp):
-#        right[i,k] = integrate.quadrature(inte, 300, T)[0]
-        right[i, k] = 1e3*E[i]/R*np.exp(LNA[i]-5.331-1.0516*E[i]*1e3/R/T)  #using Doyle's approximation
+        right[i,k] = integrate.quadrature(inte, 300, T)[0]
+#        right[i, k] = 1e3*E[i]/R*np.exp(LNA[i]-5.331-1.0516*E[i]*1e3/R/T)  #using Doyle's approximation
     y_train.append(np.array([E[i], LNA[i]]))
 
 y_train = np.stack(y_train)
@@ -115,13 +115,19 @@ k = np.reshape(k,[len(k),1])
 y_train = np.tile(y_train, (11,1))
 y_train = np.hstack([k, y_train])
 
-if separate:
-
-    np.save('dataset/ytrain_sep.npy', y_train)
+if separate:  
     rg = num_pts*11
+    mask = np.ones([11*num_pts, 1])
+    mask = mask[:,0] > 0
     for i in range(len(BETA)):
         tempX = train[i*rg:(i+1)*rg]
+        mask = mask & (np.max(tempX, axis = 1) < 1500)
+    for i in range(len(BETA)):
+        tempX = train[i*rg:(i+1)*rg]
+        tempX = tempX[mask,:]
         np.save('dataset/xtrain_sep{}'.format(i+1), tempX)
+    y_train = y_train[mask,:]    
+    np.save('dataset/ytrain_sep.npy', y_train)
     
 else:
     y_train = np.tile(y_train, (len(BETA),1))

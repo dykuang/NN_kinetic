@@ -14,7 +14,7 @@ import numpy as np
 np.random.seed(1234)
 import scipy.integrate as integrate
 import matplotlib.pyplot as plt
-
+from scipy.special import lambertw
 #------------------------------------------------------------------------------
 # Some basic setting
 #------------------------------------------------------------------------------
@@ -36,6 +36,7 @@ model_inv = {
         'R2': lambda x: 1-(1-x)**2, 
         'R3': lambda x: 1-(1-x)**3, 
         'D1': lambda x: x**0.5,
+#        'D2': lambda x: 1- np.exp()
         'D3': lambda x: 1-(1-x**0.5)**3,
         'F1': lambda x: 1-np.exp(-x),
         'F2': lambda x: 1-1/(1+x),
@@ -83,7 +84,7 @@ y_train = []
 for i in range(num_pts):
     inte = lambda x: integrand(E[i], LNA[i], x)
     for k, T in enumerate(Temp):
-        right[i,k] = integrate.quadrature(inte, 300, T)[0]
+        right[i,k] = integrate.quadrature(inte, 0, T)[0]
 #        right[i, k] = 1e3*E[i]/R*np.exp(LNA[i]-5.331-1.0516*E[i]*1e3/R/T)  #using Doyle's approximation
     y_train.append(np.array([E[i], LNA[i]]))
 

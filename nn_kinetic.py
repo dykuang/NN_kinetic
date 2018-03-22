@@ -45,17 +45,25 @@ xTrain = np.hstack([x_Train1, x_Train2, x_Train3])
 xTrain = np.hstack([xTrain, np.diff(xTrain, axis = 1)])
 yTrain = np.load(r'dataset/ytrain_sep.npy')
 
+yTrain[:,1] = yTrain[:,1]/10
+#yTrain[:,1] = yTrain[:,2]/10
 #yTrain_label = yTrain[:,0]
 #yTrain_para = yTrain[:,1:]
 
+from scipy import io
+pine_test1 = io.loadmat(r'dataset/pine5.mat')['aT'].transpose()
+pine_test2 = io.loadmat(r'dataset/pine10.mat')['aT'].transpose()
+pine_test3 = io.loadmat(r'dataset/pine15.mat')['aT'].transpose()
 
+test_pine = np.hstack([pine_test1, pine_test2, pine_test3])
+test_pine = np.hstack([test_pine, np.diff(test_pine, axis = 1)])
 
 #------------------------------------------------------------------------------
 # Train/Test split
 #------------------------------------------------------------------------------
 x_train, x_test, y_train, y_test = train_test_split(xTrain, yTrain, 
-                                                    test_size = 0.3,
-                                                    random_state = 123,
+                                                    test_size = 0.25,
+                                                    random_state = 1234,
                                                     stratify = yTrain[:,0])
 y_train_label = utils.to_categorical(y_train[:,0], cls)
 y_test_label = utils.to_categorical(y_test[:, 0], cls)
@@ -66,6 +74,7 @@ if preprocess:
     Scaler = StandardScaler().fit(x_train)
     x_train_std = Scaler.transform(x_train)
     x_test_std = Scaler.transform(x_test)
+    test_pine = Scaler.transform(test_pine)
 else:
     x_train_std = x_train
     
@@ -105,7 +114,7 @@ feature = Input(shape = (input_dim, 1))
 # =============================================================================
 #x = Dense(128, activation = 'relu', name = 'dense_1')(x)
 
-x = Conv1D(filters= 32, kernel_size = 3, strides=3, padding='same',  
+x = Conv1D(filters= 4, kernel_size = 3, strides=3, padding='valid',  
            activation='relu',name = 'conv1D_1')(feature)
 #x = Conv1D(filters= 64, kernel_size = 3, strides=3, padding='same',  
 #           activation='relu',name = 'conv1D_2')(x)
@@ -117,17 +126,19 @@ x = Flatten()(x)
 #x = GlobalAveragePooling1D()(x)
 
 x = Dense(64, activation = 'relu', name = 'dense_0')(x)
-x = Dropout(0.25)(x)
+#x = Dropout(0.2)(x)
 #x = BatchNormalization()(x)
 #x = Dense(128, activation = 'relu', name = 'dense')(feature)
 x1 = Dense(32, activation = 'relu', name = 'dense_1')(x)
 #x2 = Dense(16, activation = 'relu', name = 'dense_2')(x)
 
-x1 = Dropout(0.25)(x1)
+x1 = Dropout(0.2)(x1)
 pred = Dense(cls, activation = 'softmax', name = 'which_model')(x1)
-par = Dense(2, activation = 'relu', name = 'ElnA')(x1)
 
-model = Model(feature, [pred, par])
+#par = Dense(2, activation = 'relu', name = 'ElnA')(x1)
+par1 = Dense(1, activation = 'relu', name = 'E')(x1)
+par2 = Dense(1, activation = 'relu', name = 'lnA')(x1)
+model = Model(feature, [pred, par1, par2])
 
 #best_model=EarlyStopping(monitor='val_loss', min_delta=0, patience=5, verbose=0, mode='auto')
 #best_model = ModelCheckpoint(target_dir+'leaf_conv1d.hdf5', monitor='val_acc', 
@@ -140,8 +151,9 @@ model = Model(feature, [pred, par])
 #    return reg_loss 
     
 model.compile(loss ={'which_model': 'categorical_crossentropy', 
-                     'ElnA': 'mean_squared_logarithmic_error'},
-              loss_weights={'which_model': 1.0, 'ElnA': 3.0},
+                     'E': 'mean_squared_logarithmic_error',
+                     'lnA': 'mean_squared_logarithmic_error'},
+              loss_weights={'which_model': 1.0, 'E': 2.0, 'lnA': 2.0},
               optimizer = 'adam',
 #            optimizer = optimizers.SGD(lr=0.005, decay=1e-6, momentum=0.9, nesterov=True),
             metrics = {'which_model': 'accuracy'}
@@ -150,25 +162,75 @@ model.compile(loss ={'which_model': 'categorical_crossentropy',
 
 x_train_std = np.expand_dims(x_train_std, 2)
 x_test_std = np.expand_dims(x_test_std, 2)
+test_pine = np.expand_dims(test_pine, 2)
 #history = model.fit(x=x_train_std, y= yTrain_label,
 #                    batch_size = batchsize,
 #                    epochs = epochs, verbose = 0)
 #
-history = model.fit(x=x_train_std, y= [y_train_label, y_train[:,1:]],
+history = model.fit(x=x_train_std, y= [y_train_label, y_train[:,1], y_train[:,2]],
                     batch_size = batchsize,
                     epochs = epochs, verbose = 0,
 #                    validation_split = .2,
-                    validation_data = (x_test_std, [y_test_label, y_test[:,1:]])
+                    validation_data = (x_test_std, [y_test_label, y_test[:,1], y_test[:,2]])
 #                    callbacks=[best_model]
                     )
 
-plt.subplot(1,2,1)
+plt.subplot(1,3,1)
 plt.plot(history.history['which_model_loss'])
 plt.plot(history.history['val_which_model_loss'])
-plt.subplot(1,2,2)
-plt.plot(history.history['ElnA_loss'])
-plt.plot(history.history['val_ElnA_loss'])
+plt.subplot(1,3,2)
+plt.plot(history.history['E_loss'])
+plt.plot(history.history['val_E_loss'])
+plt.subplot(1,3,3)
+plt.plot(history.history['lnA_loss'])
+plt.plot(history.history['val_lnA_loss'])
 
-score = model.evaluate(x_test_std, [y_test_label, y_test[:,1:]])
+score = model.evaluate(x_test_std, [y_test_label, y_test[:,1], y_test[:,2]])
+print("The accuracy is : {}".format(score[4]))
 
-print("The accuracy is : {}".format(score[3]))
+#------------------------------------------------------------------------------
+# t-sne visualization before classification
+#------------------------------------------------------------------------------
+from sklearn.manifold import TSNE
+vis = K.function([model.layers[0].input, K.learning_phase()], [model.get_layer('dense_1').output])
+
+def view_embeded(data, label):
+     plt.figure(figsize=(10,10))
+     x_embedded_2d = TSNE(n_components=2, random_state=123).fit_transform(data)
+     plt.scatter(x_embedded_2d[:, 0], x_embedded_2d[:, 1], 25, c=label, cmap = 'rainbow')
+     plt.colorbar()
+     
+#view_embeded(vis([x_train_std,0])[0], np.argmax(y_train_label, axis = 1))
+
+Fine_tune = False
+if Fine_tune:
+    # Fine tune the regression part
+    for i in range(len(model.layers)-1):
+        model.layers[i].trainable = False
+        
+    
+    model.compile(loss ={'which_model': 'categorical_crossentropy', 
+                         'ElnA': 'mean_squared_logarithmic_error'},
+                  loss_weights={'which_model': 0.0, 'ElnA': 1.0},
+                  optimizer = optimizers.SGD(lr=0.005, decay=1e-4, momentum=0.9, nesterov=True),
+                metrics = {'which_model': 'accuracy'}
+                )
+    
+    history2= model.fit(x=x_train_std, y= [y_train_label, y_train[:,1:]],
+                        batch_size = batchsize,
+                        epochs = 20, verbose = 0,
+                        validation_data = (x_test_std, [y_test_label, y_test[:,1:]])
+                        )
+    
+    
+    plt.figure()
+    plt.subplot(1,2,1)
+    plt.plot(history2.history['which_model_loss'])
+    plt.plot(history2.history['val_which_model_loss'])
+    plt.subplot(1,2,2)
+    plt.plot(history2.history['ElnA_loss'])
+    plt.plot(history2.history['val_ElnA_loss'])
+    
+    score = model.evaluate(x_test_std, [y_test_label, y_test[:,1:]])
+    
+    print("The accuracy is : {}".format(score[3]))

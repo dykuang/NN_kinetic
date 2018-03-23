@@ -10,8 +10,6 @@ It turns out an easier structure does much better than the more complicated stru
 
 (should start with easy ones)
 
-best accuracy: 82%
-
 """
 from keras.models import Model
 from keras import backend as K
@@ -202,35 +200,35 @@ def view_embeded(data, label):
      
 #view_embeded(vis([x_train_std,0])[0], np.argmax(y_train_label, axis = 1))
 
-Fine_tune = False
-if Fine_tune:
-    # Fine tune the regression part
-    for i in range(len(model.layers)-1):
-        model.layers[i].trainable = False
-        
-    
-    model.compile(loss ={'which_model': 'categorical_crossentropy', 
-                         'ElnA': 'mean_squared_logarithmic_error'},
-                  loss_weights={'which_model': 0.0, 'ElnA': 1.0},
-                  optimizer = optimizers.SGD(lr=0.005, decay=1e-4, momentum=0.9, nesterov=True),
-                metrics = {'which_model': 'accuracy'}
-                )
-    
-    history2= model.fit(x=x_train_std, y= [y_train_label, y_train[:,1:]],
-                        batch_size = batchsize,
-                        epochs = 20, verbose = 0,
-                        validation_data = (x_test_std, [y_test_label, y_test[:,1:]])
-                        )
-    
-    
-    plt.figure()
-    plt.subplot(1,2,1)
-    plt.plot(history2.history['which_model_loss'])
-    plt.plot(history2.history['val_which_model_loss'])
-    plt.subplot(1,2,2)
-    plt.plot(history2.history['ElnA_loss'])
-    plt.plot(history2.history['val_ElnA_loss'])
-    
-    score = model.evaluate(x_test_std, [y_test_label, y_test[:,1:]])
-    
-    print("The accuracy is : {}".format(score[3]))
+#Fine_tune = False
+#if Fine_tune:
+#    # Fine tune the regression part
+#    for i in range(len(model.layers)-1):
+#        model.layers[i].trainable = False
+#        
+#    
+#    model.compile(loss ={'which_model': 'categorical_crossentropy', 
+#                         'ElnA': 'mean_squared_logarithmic_error'},
+#                  loss_weights={'which_model': 0.0, 'ElnA': 1.0},
+#                  optimizer = optimizers.SGD(lr=0.005, decay=1e-4, momentum=0.9, nesterov=True),
+#                metrics = {'which_model': 'accuracy'}
+#                )
+#    
+#    history2= model.fit(x=x_train_std, y= [y_train_label, y_train[:,1:]],
+#                        batch_size = batchsize,
+#                        epochs = 20, verbose = 0,
+#                        validation_data = (x_test_std, [y_test_label, y_test[:,1:]])
+#                        )
+#    
+#    
+#    plt.figure()
+#    plt.subplot(1,2,1)
+#    plt.plot(history2.history['which_model_loss'])
+#    plt.plot(history2.history['val_which_model_loss'])
+#    plt.subplot(1,2,2)
+#    plt.plot(history2.history['ElnA_loss'])
+#    plt.plot(history2.history['val_ElnA_loss'])
+#    
+#    score = model.evaluate(x_test_std, [y_test_label, y_test[:,1:]])
+#    
+#    print("The accuracy is : {}".format(score[3]))

@@ -56,6 +56,20 @@ pine_test3 = io.loadmat(r'dataset/pine15.mat')['aT'].transpose()
 test_pine = np.hstack([pine_test1, pine_test2, pine_test3])
 test_pine = np.hstack([test_pine, np.diff(test_pine, axis = 1)])
 
+corn_test1 = io.loadmat(r'dataset/corn5.mat')['aT'].transpose()
+corn_test2 = io.loadmat(r'dataset/corn10.mat')['aT'].transpose()
+corn_test3 = io.loadmat(r'dataset/corn15.mat')['aT'].transpose()
+
+test_corn = np.hstack([corn_test1, corn_test2, corn_test3])
+test_corn = np.hstack([test_corn, np.diff(test_corn, axis = 1)])
+
+coal_test1 = io.loadmat(r'dataset/coal5.mat')['aT'].transpose()
+coal_test2 = io.loadmat(r'dataset/coal10.mat')['aT'].transpose()
+coal_test3 = io.loadmat(r'dataset/coal15.mat')['aT'].transpose()
+
+test_coal = np.hstack([coal_test1, coal_test2, coal_test3])
+test_coal = np.hstack([test_coal, np.diff(test_coal, axis = 1)])
+
 #------------------------------------------------------------------------------
 # Train/Test split
 #------------------------------------------------------------------------------
@@ -65,6 +79,8 @@ x_train, x_test, y_train, y_test = train_test_split(xTrain, yTrain,
                                                     stratify = yTrain[:,0])
 y_train_label = utils.to_categorical(y_train[:,0], cls)
 y_test_label = utils.to_categorical(y_test[:, 0], cls)
+
+
 #------------------------------------------------------------------------------
 # preprocess
 #------------------------------------------------------------------------------
@@ -73,6 +89,7 @@ if preprocess:
     x_train_std = Scaler.transform(x_train)
     x_test_std = Scaler.transform(x_test)
     test_pine = Scaler.transform(test_pine)
+    test_corn = Scaler.transform(test_corn)
 else:
     x_train_std = x_train
     
@@ -161,6 +178,8 @@ model.compile(loss ={'which_model': 'categorical_crossentropy',
 x_train_std = np.expand_dims(x_train_std, 2)
 x_test_std = np.expand_dims(x_test_std, 2)
 test_pine = np.expand_dims(test_pine, 2)
+test_corn = np.expand_dims(test_corn, 2)
+test_coal = np.expand_dims(test_coal, 2)
 #history = model.fit(x=x_train_std, y= yTrain_label,
 #                    batch_size = batchsize,
 #                    epochs = epochs, verbose = 0)

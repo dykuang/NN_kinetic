@@ -28,7 +28,7 @@ from keras.layers import Conv1D, Input, GaussianNoise, Flatten, Dropout, Dense,\
 #------------------------------------------------------------------------------
 cls = 11
 batchsize = 128
-epochs = 150
+epochs = 160
 preprocess = True
 
 #xTrain = np.load(r'dataset/xtrain1.npy')
@@ -90,6 +90,7 @@ if preprocess:
     x_test_std = Scaler.transform(x_test)
     test_pine = Scaler.transform(test_pine)
     test_corn = Scaler.transform(test_corn)
+    test_coal = Scaler.transform(test_coal)
 else:
     x_train_std = x_train
     

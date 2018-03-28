@@ -23,7 +23,7 @@ num_Temp = 150
 BETA = [5, 10, 15]
 separate = True
 
-alpha = np.linspace(0.01, 0.99, 101)
+alpha = np.linspace(0.01, 0.99, 51)
 
 
 Temp = np.linspace(300, 1500, num_Temp) # temperature in Kelvin
@@ -94,8 +94,8 @@ from scipy.interpolate import interp1d
 data=[]
 for beta in BETA:
     for key, g in model_inv.items():
-        data.append(np.clip(g(right/beta), 0, 1))
-
+#        data.append(np.clip(g(right/beta), 0, 1))
+        data.append(g(right/beta))
 data = np.stack(data)
 data = np.reshape(data, [len(BETA)*11*num_pts, num_Temp])
 
@@ -120,9 +120,11 @@ if separate:
     rg = num_pts*11
     mask = np.ones([11*num_pts, 1])
     mask = mask[:,0] > 0
-    for i in range(len(BETA)):
+    for i in range(len(BETA)): # clean the data 
         tempX = train[i*rg:(i+1)*rg]
-        mask = mask & (np.max(tempX, axis = 1) < 1500)
+        diffX = np.diff(tempX, axis = 1)
+
+        mask = mask & (np.max(tempX, axis = 1) < 1500) & (~np.isnan(diffX).all(axis=1)) & ((diffX>0).all(axis=1))
     for i in range(len(BETA)):
         tempX = train[i*rg:(i+1)*rg]
         tempX = tempX[mask,:]

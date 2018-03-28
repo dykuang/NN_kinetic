@@ -28,7 +28,7 @@ from keras.layers import Conv1D, Input, GaussianNoise, Flatten, Dropout, Dense,\
 #------------------------------------------------------------------------------
 cls = 11
 batchsize = 128
-epochs = 160
+epochs = 260
 preprocess = True
 
 #xTrain = np.load(r'dataset/xtrain1.npy')
@@ -40,7 +40,7 @@ x_Train2 = np.load(r'dataset/xtrain_sep2.npy')
 x_Train3 = np.load(r'dataset/xtrain_sep3.npy')
 
 xTrain = np.hstack([x_Train1, x_Train2, x_Train3])
-xTrain = np.hstack([xTrain, np.diff(xTrain, axis = 1)])
+#xTrain = np.hstack([xTrain, np.diff(xTrain, axis = 1)])
 yTrain = np.load(r'dataset/ytrain_sep.npy')
 
 yTrain[:,1] = yTrain[:,1]/10
@@ -54,22 +54,22 @@ pine_test2 = io.loadmat(r'dataset/pine10.mat')['aT'].transpose()
 pine_test3 = io.loadmat(r'dataset/pine15.mat')['aT'].transpose()
 
 test_pine = np.hstack([pine_test1, pine_test2, pine_test3])
-test_pine = np.hstack([test_pine, np.diff(test_pine, axis = 1)])
+#test_pine = np.hstack([test_pine, np.diff(test_pine, axis = 1)])
 
 corn_test1 = io.loadmat(r'dataset/corn5.mat')['aT'].transpose()
 corn_test2 = io.loadmat(r'dataset/corn10.mat')['aT'].transpose()
 corn_test3 = io.loadmat(r'dataset/corn15.mat')['aT'].transpose()
 
 test_corn = np.hstack([corn_test1, corn_test2, corn_test3])
-test_corn = np.hstack([test_corn, np.diff(test_corn, axis = 1)])
+#test_corn = np.hstack([test_corn, np.diff(test_corn, axis = 1)])
 
 coal_test1 = io.loadmat(r'dataset/coal5.mat')['aT'].transpose()
 coal_test2 = io.loadmat(r'dataset/coal10.mat')['aT'].transpose()
 coal_test3 = io.loadmat(r'dataset/coal15.mat')['aT'].transpose()
 
 test_coal = np.hstack([coal_test1, coal_test2, coal_test3])
-test_coal = np.hstack([test_coal, np.diff(test_coal, axis = 1)])
-
+#test_coal = np.hstack([test_coal, np.diff(test_coal, axis = 1)])
+#
 #------------------------------------------------------------------------------
 # Train/Test split
 #------------------------------------------------------------------------------
@@ -88,9 +88,9 @@ if preprocess:
     Scaler = StandardScaler().fit(x_train)
     x_train_std = Scaler.transform(x_train)
     x_test_std = Scaler.transform(x_test)
-    test_pine = Scaler.transform(test_pine)
-    test_corn = Scaler.transform(test_corn)
-    test_coal = Scaler.transform(test_coal)
+#    test_pine = Scaler.transform(test_pine)
+#    test_corn = Scaler.transform(test_corn)
+#    test_coal = Scaler.transform(test_coal)
 else:
     x_train_std = x_train
     
@@ -102,6 +102,7 @@ else:
 #from keras.layers.advanced_activations import PReLU
 input_dim = x_train_std.shape[1]
 feature = Input(shape = (input_dim, 1))
+x = GaussianNoise(0.1)(feature)
 #
 # =============================================================================
 # x = GaussianNoise(0.01)(feature)
@@ -132,7 +133,7 @@ feature = Input(shape = (input_dim, 1))
 
 x = Conv1D(filters= 4, kernel_size = 3, strides=3, padding='valid',  
            activation='relu',name = 'conv1D_1')(feature)
-#x = Conv1D(filters= 64, kernel_size = 3, strides=3, padding='same',  
+#x = Conv1D(filters= 4, kernel_size = 3, strides=3, padding='valid',  
 #           activation='relu',name = 'conv1D_2')(x)
 x = MaxPooling1D(pool_size=2, strides=2, name = 'MP_1')(x)
 
@@ -148,7 +149,7 @@ x = Dense(64, activation = 'relu', name = 'dense_0')(x)
 x1 = Dense(32, activation = 'relu', name = 'dense_1')(x)
 #x2 = Dense(16, activation = 'relu', name = 'dense_2')(x)
 
-x1 = Dropout(0.2)(x1)
+#x1 = Dropout(0.2)(x1)
 pred = Dense(cls, activation = 'softmax', name = 'which_model')(x1)
 
 #par = Dense(2, activation = 'relu', name = 'ElnA')(x1)
@@ -167,9 +168,9 @@ model = Model(feature, [pred, par1, par2])
 #    return reg_loss 
     
 model.compile(loss ={'which_model': 'categorical_crossentropy', 
-                     'E': 'mean_squared_logarithmic_error',
-                     'lnA': 'mean_squared_logarithmic_error'},
-              loss_weights={'which_model': 1.0, 'E': 2.0, 'lnA': 2.0},
+                     'E': 'mean_absolute_percentage_error',
+                     'lnA': 'mean_absolute_percentage_error'},
+              loss_weights={'which_model': 10.0, 'E': 1.0, 'lnA': 1.0},
               optimizer = 'adam',
 #            optimizer = optimizers.SGD(lr=0.005, decay=1e-6, momentum=0.9, nesterov=True),
             metrics = {'which_model': 'accuracy'}
@@ -214,7 +215,7 @@ vis = K.function([model.layers[0].input, K.learning_phase()], [model.get_layer('
 
 def view_embeded(data, label):
      plt.figure(figsize=(10,10))
-     x_embedded_2d = TSNE(n_components=2, random_state=123).fit_transform(data)
+     x_embedded_2d = TSNE(n_components=2, random_state=0).fit_transform(data)
      plt.scatter(x_embedded_2d[:, 0], x_embedded_2d[:, 1], 25, c=label, cmap = 'rainbow')
      plt.colorbar()
      

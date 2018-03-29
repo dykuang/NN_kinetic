@@ -23,7 +23,7 @@ from keras.layers import Conv1D, Input, GaussianNoise, Flatten, Dropout, Dense,\
 #------------------------------------------------------------------------------
 cls = 11
 batchsize = 128
-epochs = 200
+epochs = 250
 preprocess = True
 
 
@@ -67,7 +67,7 @@ pred_coal=[]
 #------------------------------------------------------------------------------
 # 5-fold cross-validation
 #------------------------------------------------------------------------------
-skf = StratifiedKFold(n_splits=5, random_state=123, shuffle=True)
+skf = StratifiedKFold(n_splits=5, random_state=123, shuffle=False)
 for train_index, test_index in skf.split(xTrain, yTrain[:,0]):
 
     x_train, x_test = xTrain[train_index], xTrain[test_index]
@@ -98,13 +98,13 @@ for train_index, test_index in skf.split(xTrain, yTrain[:,0]):
     #------------------------------------------------------------------------------
     input_dim = x_train_std.shape[1]
     feature = Input(shape = (input_dim, 1))
-    x = GaussianNoise(0.1)(feature)
+#    x = GaussianNoise(0.1)(feature)
     
     x = Conv1D(filters= 4, kernel_size = 3, strides=3, padding='valid',  
                activation='relu',name = 'conv1D_1')(feature)
     
     x = MaxPooling1D(pool_size=2, strides=2, name = 'MP_1')(x)
-    
+#    
     x = Flatten()(x)
     
     
@@ -124,7 +124,7 @@ for train_index, test_index in skf.split(xTrain, yTrain[:,0]):
     model.compile(loss ={'which_model': 'categorical_crossentropy', 
                          'E': 'mean_absolute_percentage_error',
                          'lnA': 'mean_absolute_percentage_error'},
-                  loss_weights={'which_model': 10.0, 'E': 1.0, 'lnA': 1.0},
+                  loss_weights={'which_model': 25.0, 'E': 1.0, 'lnA': 1.0},
                   optimizer = 'adam',
     #            optimizer = optimizers.SGD(lr=0.005, decay=1e-6, momentum=0.9, nesterov=True),
                 metrics = {'which_model': 'accuracy'}
@@ -141,3 +141,4 @@ for train_index, test_index in skf.split(xTrain, yTrain[:,0]):
 #    pred_corn.append(model.predict(test_corn_std))
 #    pred_coal.append(model.predict(test_coal_std))
 
+score = np.stack(score)

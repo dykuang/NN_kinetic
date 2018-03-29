@@ -28,7 +28,7 @@ from keras.layers import Conv1D, Input, GaussianNoise, Flatten, Dropout, Dense,\
 #------------------------------------------------------------------------------
 cls = 11
 batchsize = 128
-epochs = 260
+epochs = 250
 preprocess = True
 
 #xTrain = np.load(r'dataset/xtrain1.npy')
@@ -49,23 +49,23 @@ yTrain[:,1] = yTrain[:,1]/10
 #yTrain_para = yTrain[:,1:]
 
 from scipy import io
-pine_test1 = io.loadmat(r'dataset/pine5.mat')['aT'].transpose()
-pine_test2 = io.loadmat(r'dataset/pine10.mat')['aT'].transpose()
-pine_test3 = io.loadmat(r'dataset/pine15.mat')['aT'].transpose()
+pine_test1 = io.loadmat(r'dataset/pine5.mat')['aT'].transpose()[:,::2]
+pine_test2 = io.loadmat(r'dataset/pine10.mat')['aT'].transpose()[:,::2]
+pine_test3 = io.loadmat(r'dataset/pine15.mat')['aT'].transpose()[:,::2]
 
 test_pine = np.hstack([pine_test1, pine_test2, pine_test3])
 #test_pine = np.hstack([test_pine, np.diff(test_pine, axis = 1)])
 
-corn_test1 = io.loadmat(r'dataset/corn5.mat')['aT'].transpose()
-corn_test2 = io.loadmat(r'dataset/corn10.mat')['aT'].transpose()
-corn_test3 = io.loadmat(r'dataset/corn15.mat')['aT'].transpose()
+corn_test1 = io.loadmat(r'dataset/corn5.mat')['aT'].transpose()[:,::2]
+corn_test2 = io.loadmat(r'dataset/corn10.mat')['aT'].transpose()[:,::2]
+corn_test3 = io.loadmat(r'dataset/corn15.mat')['aT'].transpose()[:,::2]
 
 test_corn = np.hstack([corn_test1, corn_test2, corn_test3])
 #test_corn = np.hstack([test_corn, np.diff(test_corn, axis = 1)])
 
-coal_test1 = io.loadmat(r'dataset/coal5.mat')['aT'].transpose()
-coal_test2 = io.loadmat(r'dataset/coal10.mat')['aT'].transpose()
-coal_test3 = io.loadmat(r'dataset/coal15.mat')['aT'].transpose()
+coal_test1 = io.loadmat(r'dataset/coal5.mat')['aT'].transpose()[:,::2]
+coal_test2 = io.loadmat(r'dataset/coal10.mat')['aT'].transpose()[:,::2]
+coal_test3 = io.loadmat(r'dataset/coal15.mat')['aT'].transpose()[:,::2]
 
 test_coal = np.hstack([coal_test1, coal_test2, coal_test3])
 #test_coal = np.hstack([test_coal, np.diff(test_coal, axis = 1)])
@@ -88,9 +88,9 @@ if preprocess:
     Scaler = StandardScaler().fit(x_train)
     x_train_std = Scaler.transform(x_train)
     x_test_std = Scaler.transform(x_test)
-#    test_pine = Scaler.transform(test_pine)
-#    test_corn = Scaler.transform(test_corn)
-#    test_coal = Scaler.transform(test_coal)
+    test_pine = Scaler.transform(test_pine)
+    test_corn = Scaler.transform(test_corn)
+    test_coal = Scaler.transform(test_coal)
 else:
     x_train_std = x_train
     
@@ -170,7 +170,7 @@ model = Model(feature, [pred, par1, par2])
 model.compile(loss ={'which_model': 'categorical_crossentropy', 
                      'E': 'mean_absolute_percentage_error',
                      'lnA': 'mean_absolute_percentage_error'},
-              loss_weights={'which_model': 10.0, 'E': 1.0, 'lnA': 1.0},
+              loss_weights={'which_model': 25.0, 'E': 1.0, 'lnA': 1.0},
               optimizer = 'adam',
 #            optimizer = optimizers.SGD(lr=0.005, decay=1e-6, momentum=0.9, nesterov=True),
             metrics = {'which_model': 'accuracy'}

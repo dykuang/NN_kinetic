@@ -1,7 +1,7 @@
 ## This project attempts to construct a 1d convolutional neural network (CNN) for predicting kinetic triplet during thermal analysis.
 
 ## Dependency
-`Keras`, `Tensorflow`
+`Keras > 2.0.0`, `Tensorflow > 1.4.0`
 
 ## Other info
 
